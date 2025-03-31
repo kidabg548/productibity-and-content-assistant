@@ -35,6 +35,7 @@ export function generateTimeBlocks(
             endTime: taskEndTime,
             task: task,
             isBreak: false,
+            duration: task.duration
         });
 
         // Setup for next block
@@ -48,6 +49,7 @@ export function generateTimeBlocks(
                 endTime: breakEndTime,
                 task: null,
                 isBreak: true,
+                duration: breakLength
             });
             currentTime = breakEndTime;
         }

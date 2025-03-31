@@ -9,4 +9,5 @@ export interface TimeBlock {
     endTime: string;
     task: Task | null;
     isBreak: boolean;
+    duration: number;  // Duration in minutes
 } 
