@@ -7,6 +7,9 @@ import userRoutes from './routes/user.route';
 import authRoutes from './routes/auth.routes';
 import musicRoutes from './routes/music.routes';
 import spotifyAuthRoutes from './routes/spotifyAuth.routes'; // Import Spotify auth routes
+import musicLLMRoutes from './routes/musicLLM.routes';
+import taskRoutes from './routes/task.routes';
+import timeManagementRoutes from './routes/timeManagement.routes';
 
 dotenv.config();
 
@@ -28,6 +31,9 @@ app.use('/users', userRoutes);
 app.use('/auth', authRoutes);
 app.use('/music', musicRoutes);
 app.use('/spotify', spotifyAuthRoutes); // Use Spotify auth routes
+app.use('/llm', musicLLMRoutes); // Add LLM music recommendation routes
+app.use('/tasks', taskRoutes);
+app.use('/llm', timeManagementRoutes);
 
 // Basic Route
 app.get('/', (req: Request, res: Response) => {
