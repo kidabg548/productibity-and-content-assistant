@@ -6,6 +6,7 @@ import { Task } from '../utils/types';
 import authMiddleware from '../middleware/authMiddleware';
 import TaskModel, { ITask } from '../models/task';
 import mongoose from 'mongoose';
+import { generateSchedule } from '../utils/timeManagement';
 
 const router = express.Router();
 
@@ -30,7 +31,17 @@ router.post('/timeManagement', authMiddleware, async (req: Request, res: Respons
         const tasks: Task[] = dbTasks.map((task: ITask) => ({
             id: task.id.toString(),
             name: task.name,
-            duration: task.duration
+            description: task.description || '',
+            duration: task.duration,
+            dueDate: task.dueDate || new Date().toISOString(),
+            complexity: task.complexity || 'Medium',
+            startTime: task.startTime,
+            endTime: task.endTime,
+            isBreak: task.isBreak || false,
+            calendarEventId: task.calendarEventId,
+            reminderTime: task.reminderTime,
+            location: task.location,
+            attendees: task.attendees
         }));
 
         // Create a chat session with function calling capability
@@ -104,4 +115,30 @@ router.post('/timeManagement', authMiddleware, async (req: Request, res: Respons
     }
 });
 
-export default router; 
+router.post('/generate-schedule', authMiddleware, async (req: Request, res: Response): Promise<void> => {
+    try {
+        const tasks: Task[] = req.body.tasks.map((task: any) => ({
+            id: task.id,
+            name: task.name,
+            description: task.description || '',
+            duration: task.duration,
+            dueDate: task.dueDate || new Date().toISOString(),
+            complexity: task.complexity || 'Medium',
+            startTime: task.startTime,
+            endTime: task.endTime,
+            isBreak: task.isBreak || false,
+            calendarEventId: task.calendarEventId,
+            reminderTime: task.reminderTime,
+            location: task.location,
+            attendees: task.attendees
+        }));
+
+        const schedule = await generateSchedule(tasks);
+        res.json(schedule);
+    } catch (error) {
+        console.error('Error generating schedule:', error);
+        res.status(500).json({ error: 'Failed to generate schedule' });
+    }
+});
+
+export default router;

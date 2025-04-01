@@ -1,5 +1,6 @@
 import { Task, TimeBlock } from './types';
 import { v4 as uuidv4 } from 'uuid';
+import { enforceBreaks } from './breakEnforcement';
 
 // Function to add minutes to a time string
 function addMinutes(startTime: string, minutes: number): string {
@@ -16,10 +17,10 @@ function addMinutes(startTime: string, minutes: number): string {
 }
 
 export function generateTimeBlocks(
-    tasks: Task[], 
-    workdayStart: string, 
-    workdayEnd: string, 
-    pomodoroLength: number = 25, 
+    tasks: Task[],
+    workdayStart: string,
+    workdayEnd: string,
+    pomodoroLength: number = 25,
     breakLength: number = 5
 ): TimeBlock[] {
     let currentTime = workdayStart;
@@ -29,8 +30,11 @@ export function generateTimeBlocks(
         // Calculate end time
         let taskEndTime = addMinutes(currentTime, task.duration);
 
+        const timeBlockId = uuidv4();
         // Create a new timeBlock
         timeBlocks.push({
+            id: timeBlockId,
+            name: task.name,
             startTime: currentTime,
             endTime: taskEndTime,
             task: task,
@@ -44,7 +48,11 @@ export function generateTimeBlocks(
         // Add a pomodoro break if needed
         if (task.duration >= pomodoroLength) {
             let breakEndTime = addMinutes(currentTime, breakLength);
+            const breakBlockId = uuidv4();
+
             timeBlocks.push({
+                id: breakBlockId,
+                name: "Break",
                 startTime: currentTime,
                 endTime: breakEndTime,
                 task: null,
@@ -56,4 +64,41 @@ export function generateTimeBlocks(
     }
 
     return timeBlocks;
-} 
+}
+
+export async function generateSchedule(tasks: Task[]): Promise<TimeBlock[]> {
+    // Sort tasks by due date and complexity
+    const sortedTasks = [...tasks].sort((a, b) => {
+        const dueDateA = new Date(a.dueDate).getTime();
+        const dueDateB = new Date(b.dueDate).getTime();
+        if (dueDateA !== dueDateB) return dueDateA - dueDateB;
+
+        // Higher complexity tasks get priority
+        const complexityOrder = { 'Easy': 1, 'Medium': 2, 'Hard': 3 };
+        return complexityOrder[b.complexity] - complexityOrder[a.complexity];
+    });
+
+    const blocks: TimeBlock[] = [];
+    let currentTime = new Date();
+
+    for (const task of sortedTasks) {
+        const block: TimeBlock = {
+            id: uuidv4(),
+            name: task.name,
+            startTime: currentTime.toISOString(),
+            endTime: new Date(currentTime.getTime() + task.duration * 60000).toISOString(),
+            isBreak: false,
+            duration: task.duration,
+            taskId: task.id,
+            taskName: task.name,
+            taskDescription: task.description,
+            taskComplexity: task.complexity,
+            task: task
+        };
+
+        blocks.push(block);
+        currentTime = new Date(block.endTime);
+    }
+
+    return enforceBreaks(blocks);
+}

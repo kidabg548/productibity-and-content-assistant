@@ -62,4 +62,30 @@ export function generateBreakInstructions(type: BreakEnforcement['type']): strin
         default:
             return 'Please take a break from your work.';
     }
+}
+
+export function enforceBreaks(blocks: TimeBlock[]): TimeBlock[] {
+    const result: TimeBlock[] = [];
+    let currentTime = new Date(blocks[0]?.startTime || new Date());
+
+    for (let i = 0; i < blocks.length; i++) {
+        const block = blocks[i];
+        const blockDuration = new Date(block.endTime).getTime() - new Date(block.startTime).getTime();
+
+        // Add the current block
+        result.push({
+            ...block,
+            startTime: currentTime.toISOString(),
+            endTime: new Date(currentTime.getTime() + blockDuration).toISOString()
+        });
+
+        // Add a break if not the last block
+        if (i < blocks.length - 1) {
+            currentTime = new Date(currentTime.getTime() + blockDuration + 15 * 60000); // 15-minute break
+        } else {
+            currentTime = new Date(currentTime.getTime() + blockDuration);
+        }
+    }
+
+    return result;
 } 
