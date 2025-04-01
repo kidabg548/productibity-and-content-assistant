@@ -70,11 +70,11 @@ router.get('/callback', async (req: Request, res: Response): Promise<void> => {
             timestamp: Date.now()
         });
 
-        // Send the token ID to the client
-        res.send(`Successfully authenticated with Spotify! Token ID: ${tokenId}`);
+        // Redirect to frontend with token ID
+        res.redirect(`http://localhost:5173/spotify/callback?tokenId=${tokenId}`);
     } catch (error) {
         console.error('Error during callback', error);
-        res.status(500).send('Authentication failed');
+        res.redirect('http://localhost:5173/spotify/callback?error=Authentication failed');
     }
 });
 

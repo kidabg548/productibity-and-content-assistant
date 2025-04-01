@@ -5,6 +5,7 @@ import { timeManagementFunction } from '../utils/functionDeclarations';
 import { Task } from '../utils/types';
 import authMiddleware from '../middleware/authMiddleware';
 import TaskModel, { ITask } from '../models/task';
+import mongoose from 'mongoose';
 
 const router = express.Router();
 
@@ -27,7 +28,7 @@ router.post('/timeManagement', authMiddleware, async (req: Request, res: Respons
 
         // Convert database tasks to the format expected by generateTimeBlocks
         const tasks: Task[] = dbTasks.map((task: ITask) => ({
-            id: task._id.toString(),
+            id: task.id.toString(),
             name: task.name,
             duration: task.duration
         }));
@@ -98,7 +99,7 @@ router.post('/timeManagement', authMiddleware, async (req: Request, res: Respons
         console.error('Error processing time management request:', error);
         res.status(500).json({ 
             error: 'Failed to process the request', 
-            details: error.message 
+            message: error.message 
         });
     }
 });

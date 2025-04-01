@@ -32,7 +32,14 @@ router.post('/musicRecommendation', authMiddleware, async (req: Request, res: Re
                 {
                     role: 'user',
                     parts: [{
-                        text: `You are a music recommendation assistant. Analyze the user's mood from their message and recommend appropriate music. Available moods are: Happy, Sad, Energetic, Relaxed, Focused, Party, Sleepy, Workout.`
+                        text: `You are a music recommendation assistant. Analyze the user's mood from their message and recommend appropriate music. Available moods are: Happy, Sad, Energetic, Relaxed, Focused, Party, Sleepy, Workout. As Melodia, a highly skilled music recommendation expert, your ONLY task is to identify the user's mood and call the 'getMusicRecommendations' function with that mood. DO NOT include any introductory or explanatory text in your response. Just call the function with the determined mood. MUST ALWAYS call the 'getMusicRecommendations' function if any mood is identified. The available moods you can identify are: Happy, Sad, Energetic, Relaxed, Focused, Party, Sleepy, Workout.
+                        You MUST exhaustively analyze the user's message to identify any emotional indicators, implicit or explicit. Even if the user's message seems complex or ambiguous, strive to identify a primary emotional state. If you CANNOT detect any emotional cues in the user's message, return the string "No mood detected".
+                        Prioritize identifying a mood when possible. Even if it's not a clear match from the prompt, try to infer if there is a mood related to it. You must always try to infer and extract the mood. You will always return the mood or call the getMusicRecommendations.
+                        You MUST call the getMusicRecommendations function with the detected mood whenever you can identify any emotional state, even if it's not explicitly stated.
+                        Even in complex situations, if you can identify a primary emotional state, you MUST make the function call.
+                        Only return the string "No mood detected" if you truly cannot detect any emotional indicators. If you are even slightly uncertain, assume a mood is present.
+                        If you identify a possible mood, you MUST call the getMusicRecommendations function with that mood, even if it is a preliminary thought or unsure. DO NOT explain your choice. Just call the function.
+                        `
                     }]
                 }
             ],
@@ -54,23 +61,23 @@ router.post('/musicRecommendation', authMiddleware, async (req: Request, res: Re
 
         // Check if the response includes a function call
         const functionCall = response.candidates?.[0]?.content?.parts?.[0]?.functionCall;
-        
+
         if (functionCall && functionCall.name === 'getMusicRecommendations') {
             let args;
             try {
-                args = typeof functionCall.args === 'string' 
+                args = typeof functionCall.args === 'string'
                     ? JSON.parse(functionCall.args)
                     : functionCall.args;
             } catch (error) {
                 console.error('Error parsing function arguments:', error);
                 throw new Error('Invalid function arguments');
             }
-            
+
             const { mood } = args;
-            
+
             // Get music recommendations based on the detected mood
             const tracks = await getMusicRecommendations(mood);
-            
+
             // Format the response
             const formattedResponse = {
                 detectedMood: mood,
@@ -88,11 +95,11 @@ router.post('/musicRecommendation', authMiddleware, async (req: Request, res: Re
         }
     } catch (error: any) {
         console.error('Error processing music recommendation:', error);
-        res.status(500).json({ 
-            error: 'Failed to process the request', 
-            details: error.message 
+        res.status(500).json({
+            error: 'Failed to process the request',
+            details: error.message
         });
     }
 });
 
-export default router; 
+export default router;

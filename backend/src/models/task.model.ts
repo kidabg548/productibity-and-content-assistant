@@ -1,18 +1,4 @@
-import mongoose, { Document } from 'mongoose';
-
-export interface ITask extends Document {
-  name: string;
-  description?: string;
-  duration: number;
-  dueDate: Date;
-  complexity: 'Easy' | 'Medium' | 'Hard';
-  startTime?: Date;
-  endTime?: Date;
-  isBreak?: boolean;
-  userId: mongoose.Types.ObjectId;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import mongoose from 'mongoose';
 
 const taskSchema = new mongoose.Schema({
   name: {
@@ -59,6 +45,4 @@ const taskSchema = new mongoose.Schema({
   timestamps: true
 });
 
-const Task = mongoose.models.Task || mongoose.model<ITask>('Task', taskSchema);
-
-export default Task; 
+export const Task = mongoose.model('Task', taskSchema); 

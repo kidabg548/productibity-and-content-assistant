@@ -1,4 +1,4 @@
-import { SchemaType, Schema } from '@google/generative-ai';
+import { SchemaType, Schema, FunctionDeclaration } from '@google/generative-ai';
 
 export const musicRecommendationFunction = {
     name: "getMusicRecommendations",
@@ -17,51 +17,53 @@ export const musicRecommendationFunction = {
     },
 };
 
-export const timeManagementFunction = {
+export const timeManagementFunction: FunctionDeclaration = {
     name: "generateTimeBlocks",
-    description: "Generates a time-blocked schedule for a list of tasks, considering Pomodoro breaks. Use this function to help the user stay focused and manage time effectively.",
+    description: "Generate a time-blocked schedule for the given tasks, including appropriate breaks",
     parameters: {
         type: SchemaType.OBJECT,
         properties: {
             tasks: {
                 type: SchemaType.ARRAY,
-                description: "A list of tasks to schedule.",
+                description: "Array of tasks to schedule",
                 items: {
                     type: SchemaType.OBJECT,
                     properties: {
-                        id: {
-                            type: SchemaType.STRING,
-                            description: "Unique identifier for the task",
-                        } as Schema,
                         name: {
                             type: SchemaType.STRING,
-                            description: "Task Name"
+                            description: "Name of the task"
                         } as Schema,
                         duration: {
                             type: SchemaType.NUMBER,
-                            description: "Estimated duration in minutes",
+                            description: "Duration of the task in minutes"
                         } as Schema,
+                        dueDate: {
+                            type: SchemaType.STRING,
+                            description: "Due date of the task"
+                        } as Schema,
+                        complexity: {
+                            type: SchemaType.STRING,
+                            description: "Complexity level of the task (Easy, Medium, Hard)",
+                            format: "enum",
+                            enum: ["Easy", "Medium", "Hard"]
+                        } as Schema,
+                        description: {
+                            type: SchemaType.STRING,
+                            description: "Description of the task"
+                        } as Schema
                     },
-                    required: ["id", "name", "duration"],
-                } as Schema,
-            } as Schema,
+                    required: ["name", "duration", "dueDate", "complexity"]
+                } as Schema
+            },
             workdayStart: {
                 type: SchemaType.STRING,
-                description: "The start time of the workday (e.g., '9:00')",
+                description: "Start time of the workday (HH:mm format)"
             } as Schema,
             workdayEnd: {
                 type: SchemaType.STRING,
-                description: "The end time of the workday (e.g., '17:00').",
-            } as Schema,
-            pomodoroLength: {
-                type: SchemaType.NUMBER,
-                description: "The length of each Pomodoro session in minutes (default is 25).",
-            } as Schema,
-            breakLength: {
-                type: SchemaType.NUMBER,
-                description: "The length of the break between Pomodoro sessions in minutes (default is 5).",
-            } as Schema,
+                description: "End time of the workday (HH:mm format)"
+            } as Schema
         },
-        required: ["tasks", "workdayStart", "workdayEnd"],
-    },
+        required: ["tasks"]
+    }
 }; 

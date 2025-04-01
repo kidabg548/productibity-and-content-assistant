@@ -1,84 +1,62 @@
-import express, { Request, Response } from 'express';
-import authMiddleware from '../middleware/authMiddleware';
-import Task from '../models/task';
+import express, { Request, Response, NextFunction } from 'express';
+import Task, { ITask } from '../models/task';
+import { authMiddleware } from '../middleware/auth.middleware';
+import { validateTask } from '../middleware/validation.middleware';
 
 const router = express.Router();
 
-// Create a new task
-router.post('/', authMiddleware, async (req: Request, res: Response): Promise<void> => {
+// Get all tasks for the authenticated user
+router.get('/', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { name, duration } = req.body;
-    const userId = (req as any).userId;
-
-    const newTask = new Task({
-      userId,
-      name,
-      duration,
-    });
-
-    await newTask.save();
-    res.status(201).json(newTask);
+    const tasks = await Task.find({ userId: (req as any).userId }).sort({ dueDate: 1 });
+    res.json(tasks);
   } catch (error) {
-    console.error('Error creating task:', error);
-    res.status(500).json({ error: 'Failed to create task' });
+    next(error);
   }
 });
 
-// Get all tasks for a user
-router.get('/', authMiddleware, async (req: Request, res: Response): Promise<void> => {
+// Create a new task
+router.post('/', authMiddleware, validateTask, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const userId = (req as any).userId;
-    const tasks = await Task.find({ userId });
-    res.json(tasks);
+    const task = new Task({
+      ...req.body,
+      userId: (req as any).userId
+    });
+    await task.save();
+    res.status(201).json(task);
   } catch (error) {
-    console.error('Error getting tasks:', error);
-    res.status(500).json({ error: 'Failed to get tasks' });
+    next(error);
   }
 });
 
 // Update a task
-router.put('/:id', authMiddleware, async (req: Request, res: Response): Promise<void> => {
+router.put('/:id', authMiddleware, validateTask, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { name, duration, completed } = req.body;
-    const taskId = req.params.id;
-    const userId = (req as any).userId;
-
-    const task = await Task.findOne({ _id: taskId, userId });
-
+    const task = await Task.findOne({ _id: req.params.id, userId: (req as any).userId });
     if (!task) {
       res.status(404).json({ message: 'Task not found' });
       return;
     }
-
-    task.name = name || task.name;
-    task.duration = duration || task.duration;
-    task.completed = completed !== undefined ? completed : task.completed;
-
+    
+    Object.assign(task, req.body);
     await task.save();
     res.json(task);
   } catch (error) {
-    console.error('Error updating task:', error);
-    res.status(500).json({ error: 'Failed to update task' });
+    next(error);
   }
 });
 
 // Delete a task
-router.delete('/:id', authMiddleware, async (req: Request, res: Response): Promise<void> => {
+router.delete('/:id', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const taskId = req.params.id;
-    const userId = (req as any).userId;
-
-    const deletedTask = await Task.findOneAndDelete({ _id: taskId, userId });
-
-    if (!deletedTask) {
+    const task = await Task.findOneAndDelete({ _id: req.params.id, userId: (req as any).userId });
+    if (!task) {
       res.status(404).json({ message: 'Task not found' });
       return;
     }
-
     res.json({ message: 'Task deleted successfully' });
   } catch (error) {
-    console.error('Error deleting task:', error);
-    res.status(500).json({ error: 'Failed to delete task' });
+    next(error);
   }
 });
 
