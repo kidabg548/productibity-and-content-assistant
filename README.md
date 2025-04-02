@@ -95,3 +95,9 @@ npm install
 cd backend
 npm run dev
 ```
+
+2. Start the frontend server:
+```bash
+cd frontend
+npm run dev
+```
