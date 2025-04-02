@@ -117,8 +117,21 @@ router.post('/timeManagement', authMiddleware, async (req: Request, res: Respons
 
 router.post('/generate-schedule', authMiddleware, async (req: Request, res: Response): Promise<void> => {
     try {
-        const tasks: Task[] = req.body.tasks.map((task: any) => ({
-            id: task.id,
+        const userId = (req as any).userId;
+        
+        // Fetch all tasks for the user from the database
+        const dbTasks = await TaskModel.find({ userId });
+        
+        if (!dbTasks || dbTasks.length === 0) {
+            res.status(404).json({ 
+                message: "No tasks found. Please create some tasks first before generating a schedule." 
+            });
+            return;
+        }
+
+        // Convert database tasks to the format expected by generateSchedule
+        const tasks: Task[] = dbTasks.map((task: ITask) => ({
+            id: task.id.toString(),
             name: task.name,
             description: task.description || '',
             duration: task.duration,
@@ -130,14 +143,17 @@ router.post('/generate-schedule', authMiddleware, async (req: Request, res: Resp
             calendarEventId: task.calendarEventId,
             reminderTime: task.reminderTime,
             location: task.location,
-            attendees: task.attendees
+            attendees: task.attendees || []
         }));
 
         const schedule = await generateSchedule(tasks);
         res.json(schedule);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error generating schedule:', error);
-        res.status(500).json({ error: 'Failed to generate schedule' });
+        res.status(500).json({ 
+            error: 'Failed to generate schedule', 
+            message: error.message 
+        });
     }
 });
 

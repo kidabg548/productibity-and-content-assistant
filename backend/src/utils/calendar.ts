@@ -1,6 +1,7 @@
 import { google } from 'googleapis';
 import { CalendarEvent, Task } from './types';
 import { v4 as uuidv4 } from 'uuid';
+import { formatDateForAPI, getStartAndEndOfDay, parseDateString } from './dateUtils';
 
 const calendar = google.calendar('v3');
 
@@ -13,7 +14,6 @@ export async function createCalendarEvent(
     auth.setCredentials({ access_token: accessToken });
 
     const event: CalendarEvent = {
-        id: uuidv4(), // Generate a temporary ID
         summary: task.name,
         description: task.description,
         start: {
@@ -51,7 +51,7 @@ export async function createCalendarEvent(
 
         return {
             ...event,
-            id: response.data.id || event.id, // Use the Google Calendar ID if available, otherwise use our generated ID
+            id: response.data.id || uuidv4(), // Use the Google Calendar ID if available, otherwise use our generated ID
         };
     } catch (error) {
         console.error('Error creating calendar event:', error);
@@ -112,6 +112,8 @@ export async function getCalendarEvents(
     auth.setCredentials({ access_token: accessToken });
 
     try {
+        console.log('Getting calendar events with params:', { timeMin, timeMax });
+        
         const response = await calendar.events.list({
             auth,
             calendarId: 'primary',
@@ -119,6 +121,12 @@ export async function getCalendarEvents(
             timeMax,
             singleEvents: true,
             orderBy: 'startTime',
+        });
+
+        console.log('Calendar API response:', {
+            status: response.status,
+            statusText: response.statusText,
+            eventCount: response.data.items?.length || 0
         });
 
         return response.data.items as CalendarEvent[];

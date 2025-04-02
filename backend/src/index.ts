@@ -11,6 +11,7 @@ import musicLLMRoutes from './routes/musicLLM.routes';
 import taskRoutes from './routes/task.routes';
 import timeManagementRoutes from './routes/timeManagement.routes';
 import breakEnforcementRoutes from './routes/breakEnforcement.routes';
+import calendarRoutes from './routes/calendar.routes';
 
 dotenv.config();
 
@@ -36,6 +37,7 @@ app.use('/llm', musicLLMRoutes); // Add LLM music recommendation routes
 app.use('/tasks', taskRoutes);
 app.use('/llm', timeManagementRoutes);
 app.use('/break', breakEnforcementRoutes);
+app.use('/calendar', calendarRoutes);
 
 // Basic Route
 app.get('/', (req: Request, res: Response) => {

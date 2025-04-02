@@ -9,6 +9,7 @@ interface IUser extends Document {
   googleAccessToken?: string;
   googleRefreshToken?: string;
   googleTokenExpiry?: number;
+  emailNotifications: boolean;
   comparePassword(password: string): Promise<boolean>;
 }
 
@@ -20,7 +21,8 @@ const UserSchema: Schema<IUser> = new Schema(
     password: { type: String, required: true },
     googleAccessToken: { type: String },
     googleRefreshToken: { type: String },
-    googleTokenExpiry: { type: Number }
+    googleTokenExpiry: { type: Number },
+    emailNotifications: { type: Boolean, default: true }
   },
   { timestamps: true } // ✅ Enables auto-updating `createdAt` & `updatedAt`
 );

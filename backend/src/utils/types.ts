@@ -29,7 +29,7 @@ export interface TimeBlock {
 }
 
 export interface CalendarEvent {
-    id: string;
+    id?: string;
     summary: string;
     description: string;
     start: {
@@ -41,16 +41,13 @@ export interface CalendarEvent {
         timeZone: string;
     };
     location?: string;
-    attendees?: Array<{
-        email: string;
-        displayName?: string;
-    }>;
+    attendees?: { email: string }[];
     reminders?: {
         useDefault: boolean;
-        overrides: Array<{
-            method: 'email' | 'popup';
+        overrides: {
+            method: string;
             minutes: number;
-        }>;
+        }[];
     };
 }
 

@@ -3,7 +3,13 @@ import { v4 as uuidv4 } from 'uuid';
 import { enforceBreaks } from './breakEnforcement';
 
 // Function to add minutes to a time string
-function addMinutes(startTime: string, minutes: number): string {
+function addMinutes(startTime: string | undefined, minutes: number): string {
+    if (!startTime) {
+        // If no start time provided, use current time
+        const now = new Date();
+        startTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    }
+
     const [hours, minutesPart] = startTime.split(':');
     let totalMinutes = parseInt(hours) * 60 + parseInt(minutesPart) + minutes;
     let newHours = Math.floor(totalMinutes / 60) % 24; // Keep within 0-23 range
@@ -18,8 +24,8 @@ function addMinutes(startTime: string, minutes: number): string {
 
 export function generateTimeBlocks(
     tasks: Task[],
-    workdayStart: string,
-    workdayEnd: string,
+    workdayStart: string = "09:00",
+    workdayEnd: string = "17:00",
     pomodoroLength: number = 25,
     breakLength: number = 5
 ): TimeBlock[] {
